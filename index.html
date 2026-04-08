@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IP Info</title>
+
+<style>
+body {
+  background: #121212;
+  color: #fff;
+  font-family: Arial;
+  text-align: center;
+  padding: 15px;
+}
+
+/* Green Shine */
+.creator {
+  font-size: 26px;
+  font-weight: bold;
+  background: linear-gradient(90deg, #00ff99, #00cc66, #00ff99);
+  background-size: 200% auto;
+  color: transparent;
+  -webkit-background-clip: text;
+  animation: shine 3s linear infinite;
+}
+
+@keyframes shine {
+  0% { background-position: 0% }
+  100% { background-position: 200% }
+}
+
+.whatsapp {
+  font-size: 18px;
+  margin-bottom: 15px;
+}
+
+button.refresh {
+  background: #00cc66;
+  border: none;
+  padding: 10px 16px;
+  color: white;
+  border-radius: 6px;
+  font-size: 18px;
+  margin-bottom: 20px;
+}
+
+.chart {
+  background: #1e1e1e;
+  border-radius: 10px;
+  padding: 20px;
+  max-width: 420px;
+  margin: auto;
+  text-align: left;
+  font-size: 18px;
+}
+
+.row {
+  display: flex;
+  justify-content: space-between;
+  border-bottom: 1px dashed #555;
+  padding: 8px 0;
+}
+
+.copy {
+  background: #0099ff;
+  border: none;
+  padding: 4px 10px;
+  font-size: 14px;
+  margin-left: 5px;
+  border-radius: 4px;
+}
+
+/* ISP smaller */
+.isp-row {
+  font-size: 14px;
+}
+
+.isp-value {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* disguise */
+.disguise-box {
+  margin-top: 15px;
+}
+
+.bar {
+  background: #333;
+  height: 35px;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.fill {
+  height: 100%;
+  text-align: center;
+  line-height: 35px;
+  font-weight: bold;
+  color: #fff;
+}
+</style>
+</head>
+
+<body>
+
+<div class="creator">CREATOR BY SAGOR</div>
+<div class="whatsapp">Whatsapp : 01922755197</div>
+
+<button class="refresh" onclick="loadData()">Refresh</button>
+
+<div class="chart">
+
+<div class="row">
+  <span>Your IP:</span>
+  <span id="ip">...</span>
+</div>
+
+<div class="row">
+  <span>ASN:</span>
+  <span>
+    <span id="asn"></span>
+    <button class="copy" onclick="copyText('asn')">Copy</button>
+  </span>
+</div>
+
+<div class="row">
+  <span>City:</span>
+  <span id="city"></span>
+</div>
+
+<div class="row">
+  <span>Region:</span>
+  <span id="region"></span>
+</div>
+
+<div class="row">
+  <span>Country:</span>
+  <span id="country"></span>
+</div>
+
+<div class="row">
+  <span>OS:</span>
+  <span id="os"></span>
+</div>
+
+<div class="row">
+  <span>Timezone City:</span>
+  <span>
+    <span id="tz"></span>
+    <button class="copy" onclick="copyText('tz')">Copy</button>
+  </span>
+</div>
+
+<div class="row isp-row">
+  <span>ISP:</span>
+  <span id="isp" class="isp-value"></span>
+</div>
+
+<div class="disguise-box">
+  <div class="bar">
+    <div class="fill" id="bar">Loading...</div>
+  </div>
+</div>
+
+</div>
+
+<script>
+async function loadData() {
+  const res = await fetch('http://ip-api.com/json/');
+  const data = await res.json();
+
+  document.getElementById('ip').innerText = data.query;
+
+  let parts = data.as.split(" ");
+  document.getElementById('asn').innerText = parts[0];
+
+  document.getElementById('city').innerText = data.city;
+  document.getElementById('region').innerText = data.regionName;
+  document.getElementById('country').innerText = data.country;
+
+  let ua = navigator.userAgent;
+  let os = "Unknown";
+
+  if (ua.includes("Android")) os = "Android";
+  else if (ua.includes("iPhone")) os = "iOS";
+  else if (ua.includes("Windows")) os = "Windows";
+  else if (ua.includes("Mac")) os = "MacOS";
+
+  document.getElementById('os').innerText = os;
+
+  let tz = data.timezone.split("/")[1];
+  document.getElementById('tz').innerText = tz;
+
+  document.getElementById('isp').innerText = data.isp;
+
+  // disguise logic
+  let score = 90;
+
+  if (data.proxy) score -= 25;
+  if (data.hosting) score -= 20;
+
+  if (data.isp.toLowerCase().includes("mobile")) score -= 5;
+
+  score += Math.floor(Math.random() * 6) - 3;
+
+  if (score > 98) score = 98;
+  if (score < 60) score = 60;
+
+  let bar = document.getElementById('bar');
+
+  bar.style.width = score + "%";
+  bar.innerText = "Your Disguise: " + score + "%";
+
+  if (score < 70) bar.style.background = "#ff3333";
+  else if (score < 85) bar.style.background = "#ffcc00";
+  else bar.style.background = "#00cc66";
+}
+
+function copyText(id) {
+  navigator.clipboard.writeText(document.getElementById(id).innerText);
+}
+
+loadData();
+</script>
+
+</body>
+</html>
